@@ -1,6 +1,7 @@
 package com.squidsec.burp.bridge;
 
 import burp.api.montoya.MontoyaApi;
+
 import burp.api.montoya.http.HttpService;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.http.message.responses.HttpResponse;
@@ -63,12 +64,19 @@ public final class BridgeHistoryTab extends JPanel implements BridgeHistoryLog.L
     private final JTextField burpProxyField;
     private final MontoyaApi api;
     private final BridgeHttpServer server;
+    private final java.awt.Component dialogParent;
 
     public BridgeHistoryTab(MontoyaApi api, BridgeHistoryLog log, BridgeHttpServer server) {
         super(new BorderLayout(0, 0));
         this.api = api;
         this.log = log;
         this.server = server;
+        java.awt.Component parent = this;
+        try {
+            parent = api.userInterface().swingUtils().suiteFrame();
+        } catch (Exception ignored) {
+        }
+        this.dialogParent = parent == null ? this : parent;
 
         UserInterface ui = api.userInterface();
         requestEditor = ui.createHttpRequestEditor(EditorOptions.READ_ONLY);
@@ -199,11 +207,11 @@ public final class BridgeHistoryTab extends JPanel implements BridgeHistoryLog.L
         try {
             port = Integer.parseInt(portField.getText().trim());
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Port must be a number 1-65535");
+            JOptionPane.showMessageDialog(dialogParent, "Port must be a number 1-65535");
             return;
         }
         if (port <= 0 || port > 65535) {
-            JOptionPane.showMessageDialog(this, "Port must be 1-65535");
+            JOptionPane.showMessageDialog(dialogParent, "Port must be 1-65535");
             return;
         }
         String proxyHost = server.config().burpProxyHost();
@@ -215,7 +223,7 @@ public final class BridgeHistoryTab extends JPanel implements BridgeHistoryLog.L
             try {
                 proxyPort = Integer.parseInt(rawProxy.substring(colon + 1).trim());
             } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Burp proxy must be host:port");
+                JOptionPane.showMessageDialog(dialogParent, "Burp proxy must be host:port");
                 return;
             }
         }
@@ -237,7 +245,7 @@ public final class BridgeHistoryTab extends JPanel implements BridgeHistoryLog.L
                                     + ":"
                                     + server.boundPort());
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Could not bind " + host + ":" + port + " - " + e.getMessage());
+            JOptionPane.showMessageDialog(dialogParent, "Could not bind " + host + ":" + port + " - " + e.getMessage());
         }
     }
 

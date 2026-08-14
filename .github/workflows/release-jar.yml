@@ -1,0 +1,113 @@
+name: Build and Release JAR
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-jar-main
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: [self-hosted, Linux, X64, squidsec]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Unit tests
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew test --no-daemon
+
+  build:
+    needs: test
+    runs-on: [self-hosted, Linux, X64, squidsec]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build JAR
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          ./gradlew jar --no-daemon
+          ls -la build/libs/
+
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: burp-ai-bridge-jar
+          path: build/libs/burp-ai-bridge-*.jar
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: [self-hosted, Linux, X64, squidsec]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Download JAR
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: burp-ai-bridge-jar
+          path: release-assets
+
+      - name: Prepare release metadata
+        id: meta
+        run: |
+          set -euo pipefail
+          BASE_VERSION=$(grep -oP 'VERSION = "\K[^"]+' src/main/java/com/squidsec/burp/bridge/BridgeVersion.java)
+          RUN="${{ github.run_number }}"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          TAG="v${BASE_VERSION}-build.${RUN}"
+          JAR=$(find release-assets -type f -name 'burp-ai-bridge-*.jar' | head -1)
+          test -n "$JAR"
+          mkdir -p release-final
+          cp -f "$JAR" "release-final/burp-ai-bridge-${BASE_VERSION}.jar"
+          {
+            echo "base_version=${BASE_VERSION}"
+            echo "tag=${TAG}"
+            echo "jar=release-final/burp-ai-bridge-${BASE_VERSION}.jar"
+            echo "short_sha=${SHORT_SHA}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: SquidSec AI Bridge ${{ steps.meta.outputs.base_version }} (build ${{ github.run_number }})
+          target_commitish: ${{ github.sha }}
+          generate_release_notes: true
+          make_latest: true
+          files: ${{ steps.meta.outputs.jar }}
+          body: |
+            ## SquidSec AI Bridge ${{ steps.meta.outputs.base_version }} - build ${{ github.run_number }}
+
+            Burp Suite extension JAR. Load it under Extensions → Installed → Add → Java.
+
+            **File:** `burp-ai-bridge-${{ steps.meta.outputs.base_version }}.jar`
+            **Commit:** `${{ steps.meta.outputs.short_sha }}`
+
+            Latest: https://github.com/${{ github.repository }}/releases/latest
+
+            [SquidSec](https://squidoffense.com/) · [GitHub](https://github.com/${{ github.repository }})
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,18 +1,10 @@
+# Deprecated. Tests: run-tests.yml. Releases: release-jar.yml.
 name: CI
-
 on:
-  push:
-    branches: [main]
-  pull_request:
-
+  workflow_dispatch:
 jobs:
-  test:
+  noop:
+    if: false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-      - name: Test
-        run: chmod +x gradlew && ./gradlew test --no-daemon
+      - run: "true"

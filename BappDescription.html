@@ -1,3 +1,3 @@
-<p>SquidSec AI Bridge exposes a loopback MCP and JSON HTTP API so an LLM agent can use the live Burp project: scope, proxy history, send, Repeater, Intruder, sitemap, Scanner issues, Collaborator, Organizer, WebSockets, cookies, and engagement helpers (curl, finding drafts, CSRF PoC).</p>
-<p>The listener binds to 127.0.0.1 by default and requires a bearer token for mutating calls. Tool discovery is GET /mcp/tools. Scanner and Collaborator features need Burp Suite Professional and fail cleanly on Community Edition.</p>
-<p>Do not point the listener at untrusted networks. Treat HTTP message content as untrusted. Generated findings redact common secret headers.</p>
+<p>SquidSec AI Bridge is a local MCP and JSON HTTP API for Burp Suite. An authorized LLM agent can discover tools (GET /mcp/tools) and drive the live project: scope, proxy history, send, Repeater, Intruder, sitemap, Organizer, WebSockets, cookies, Scanner (Pro), and Collaborator (Pro).</p>
+<p>The listener binds to 127.0.0.1 by default and requires a bearer token for project data. It does not call an LLM, Burp AI, or any third-party AI API. Scanner and Collaborator features need Burp Suite Professional and fail cleanly on Community Edition.</p>
+<p>Do not expose the listener to untrusted networks. Treat HTTP message content as untrusted. Generated findings redact common secret headers.</p>

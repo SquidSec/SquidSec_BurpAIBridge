@@ -5,6 +5,7 @@ import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import burp.api.montoya.http.message.responses.HttpResponse;
 import burp.api.montoya.proxy.ProxyHttpRequestResponse;
+import burp.api.montoya.sitemap.SiteMapFilter;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -726,7 +727,7 @@ public final class BridgeHttpServer {
             }
             if (items.size() >= limit) {
                 matched++;
-                continue;
+                break;
             }
             boolean inScope = isItemInScope(item);
             items.add(MessageCodec.historyItemToJson(item, i, includeBody, bodyLimit, inScope, format));
@@ -1009,19 +1010,10 @@ public final class BridgeHttpServer {
         }
 
         List<Object> items = Json.arr();
-        api.siteMap().requestResponses().stream()
-                .filter(rr -> {
-                    if (prefix == null || prefix.isBlank()) {
-                        return true;
-                    }
-                    try {
-                        String url = rr.request().url();
-                        return url != null
-                                && url.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT));
-                    } catch (Exception e) {
-                        return false;
-                    }
-                })
+        var source = (prefix == null || prefix.isBlank())
+                ? api.siteMap().requestResponses()
+                : api.siteMap().requestResponses(SiteMapFilter.prefixFilter(prefix));
+        source.stream()
                 .limit(limit)
                 .forEach(rr -> {
                     Map<String, Object> m = Json.obj();
@@ -1136,9 +1128,6 @@ public final class BridgeHttpServer {
         sb.append("Content-Type: ").append(contentType).append("\r\n");
         sb.append("Content-Length: ").append(bytes.length).append("\r\n");
         sb.append("Connection: close\r\n");
-        sb.append("Access-Control-Allow-Origin: *\r\n");
-        sb.append("Access-Control-Allow-Headers: Authorization, Content-Type, X-API-Key\r\n");
-        sb.append("Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n");
         sb.append("\r\n");
         String headerBlock = sb.toString();
         out.write(headerBlock.getBytes(StandardCharsets.US_ASCII));

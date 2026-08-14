@@ -59,11 +59,15 @@ final class BridgeContextMenu implements ContextMenuItemsProvider {
         });
         JMenuItem org = new JMenuItem("AI Bridge: send to Organizer");
         org.addActionListener(e -> {
-            try {
-                api.organizer().sendToOrganizer(rr);
-            } catch (Exception ex) {
-                api.logging().logToError("organizer send failed: " + ex.getMessage());
-            }
+            Thread t = new Thread(() -> {
+                try {
+                    api.organizer().sendToOrganizer(rr);
+                } catch (Exception ex) {
+                    api.logging().logToError("organizer send failed: " + ex.getMessage());
+                }
+            }, "ai-bridge-organizer");
+            t.setDaemon(true);
+            t.start();
         });
         items.add(curl);
         items.add(org);

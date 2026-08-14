@@ -5,7 +5,7 @@ SerialVersion: 20
 MinPlatformVersion: 12
 ProOnly: False
 Author: SquidSec
-ShortDescription: Local MCP/HTTP API so agents can drive live Burp (scope, history, send, scanner, collaborator).
+ShortDescription: Local MCP/HTTP API so an authorized agent can drive the live Burp project.
 EntryPoint: build/libs/burp-ai-bridge-2.0.0.jar
 BuildCommand: ./gradlew jar
 SupportedProducts: Pro, Community

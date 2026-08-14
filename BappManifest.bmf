@@ -1,0 +1,11 @@
+Uuid: 7c2e9a11-4b6f-4d80-9c3a-a1b2c3d4e5f6
+Name: SquidSec AI Bridge
+Version: 2.0.0
+SerialVersion: 20
+MinPlatformVersion: 12
+ProOnly: False
+Author: SquidSec
+ShortDescription: Local MCP/HTTP API so agents can drive live Burp (scope, history, send, scanner, collaborator).
+EntryPoint: build/libs/burp-ai-bridge-2.0.0.jar
+BuildCommand: ./gradlew jar
+SupportedProducts: Pro, Community

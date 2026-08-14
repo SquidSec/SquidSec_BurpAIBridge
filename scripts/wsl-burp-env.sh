@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Source from WSL:  source /mnt/c/Users/ynot_/OneDrive/Desktop/Company\ Data/SquidSec/projects/burp-ai-bridge/scripts/wsl-burp-env.sh
+# Source from WSL after the extension is loaded in Burp.
 set -euo pipefail
 
 ENDPOINT="${HOME}/.squidsec/burp-ai-bridge.json"
